@@ -64,6 +64,7 @@ defmodule WebauthnComponents.AuthenticationComponent do
       |> assign_new(:show_icon?, fn -> true end)
       |> assign_new(:relying_party, fn -> nil end)
       |> assign_new(:skip_conditional_ui_check, fn -> false end)
+      |> assign_new(:origin, fn -> nil end)
     }
   end
 
@@ -144,7 +145,10 @@ defmodule WebauthnComponents.AuthenticationComponent do
 
     challenge =
       Wax.new_authentication_challenge(
-        origin: endpoint.url(),
+        # `:origin` assign lets a multi-host deployment pass the actual
+        # request origin; `endpoint.url()` is the configured canonical URL
+        # and breaks WebAuthn on every other admitted host.
+        origin: assigns[:origin] || endpoint.url(),
         rp_id: :auto,
         user_verification: "preferred"
       )

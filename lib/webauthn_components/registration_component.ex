@@ -84,6 +84,7 @@ defmodule WebauthnComponents.RegistrationComponent do
       end)
       |> assign_new(:show_icon?, fn -> true end)
       |> assign_new(:relying_party, fn -> nil end)
+      |> assign_new(:origin, fn -> nil end)
     }
   end
 
@@ -156,7 +157,10 @@ defmodule WebauthnComponents.RegistrationComponent do
     challenge =
       Wax.new_registration_challenge(
         attestation: attestation,
-        origin: endpoint.url(),
+        # `:origin` assign lets a multi-host deployment pass the actual
+        # request origin; `endpoint.url()` is the configured canonical URL
+        # and breaks WebAuthn on every other admitted host.
+        origin: assigns[:origin] || endpoint.url(),
         rp_id: :auto,
         trusted_attestation_types: [:none, :basic]
       )
